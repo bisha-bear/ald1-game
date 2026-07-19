@@ -6,375 +6,511 @@
     <title>ALD1 Jigsaw</title>
     <style>
         :root {
-            /* 高級感莫蘭迪調色盤 */
-            --bg-color: #f4f3ef;         /* 燕麥暖白 */
-            --container-bg: #e2e7e6;     /* 灰豆綠 */
-            --panel-bg: #ffffff;
-            --accent-color: #7d93a4;     /* 煙燻藍 */
-            --accent-hover: #5d7284;
-            --text-color: #555e65;       /* 炭灰 */
-            --border-color: #ced4da;
+            --bg-color: #3d262a;
+            --card-bg: #c5b4a5;
+            --text-dark: #1a1a1a;
         }
-        body {
-            font-family: 'Segoe UI', Arial, 'Microsoft JhengHei', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            color: #fff;
         }
-        header {
-            text-align: center;
-            margin-bottom: 25px;
+
+        /* 關卡選擇畫面 - 響應式網格 */
+        #selection-screen {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            padding: 40px;
+            max-width: 800px;
             width: 100%;
-            max-width: 900px;
         }
-        h1 { color: var(--accent-color); margin: 5px 0; font-size: 26px; letter-spacing: 2px; font-weight: 600; }
-        
-        /* 頂部控制列 */
-        .controls-top {
+
+        /* 專輯盒 3D 樣式 */
+        .album-card {
+            background-color: var(--card-bg);
+            padding: 12px 12px 45px 12px;
+            position: relative;
+            box-shadow: 
+                5px 5px 0px rgba(0,0,0,0.2),
+                10px 10px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .album-card::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 5px;
+            width: 10px;
+            height: 100%;
+            background: #9e8e7f;
+            transform: skewY(45deg);
+        }
+        .album-card::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            bottom: -10px;
+            width: 100%;
+            height: 10px;
+            background: #857567;
+            transform: skewX(45deg);
+        }
+
+        .album-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 
+                7px 7px 0px rgba(0,0,0,0.2),
+                12px 12px 20px rgba(0,0,0,0.4);
+        }
+
+        .album-img-wrapper {
+            position: relative;
+            width: 100%;
+            flex-grow: 1;
+            overflow: hidden;
+            background: #222;
+        }
+
+        .album-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 底部文字與條形碼 */
+        .album-footer {
+            position: absolute;
+            bottom: 8px;
+            left: 12px;
+            right: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--panel-bg);
-            padding: 12px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 860px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid #e9ecef;
+            color: var(--text-dark);
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 16px;
         }
-        
-        /* 按鈕樣式 */
-        button, .file-label {
-            background: var(--panel-bg);
-            border: 1.5px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 8px 16px;
-            cursor: pointer;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            display: inline-block;
-        }
-        button:hover, .file-label:hover { background: var(--accent-color); color: #fff; }
-        input[type="file"] { display: none; } /* 隱藏醜醜的原生按鈕 */
 
-        /* 檔案準備面板 */
-        #setup-view { text-align: center; background: var(--panel-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 500px; box-sizing: border-box; }
-        .upload-section { display: flex; flex-direction: column; gap: 15px; margin: 20px 0; align-items: center; }
-        .file-status { font-size: 13px; color: #8a9597; margin-top: -10px; }
-        .difficulty-options { display: flex; gap: 12px; justify-content: center; margin-top: 25px; flex-wrap: wrap; }
-        .difficulty-options button:disabled { border-color: #ccc; color: #ccc; cursor: not-allowed; background: #fafafa; }
-        
+        .barcode {
+            width: 45px;
+            height: 22px;
+            background: linear-gradient(90deg, 
+                #000 0%, #000 10%, transparent 10%, transparent 15%,
+                #000 15%, #000 35%, transparent 35%, transparent 40%,
+                #000 40%, #000 45%, transparent 45%, transparent 55%,
+                #000 55%, #000 60%, transparent 60%, transparent 70%,
+                #000 70%, #000 90%, transparent 90%, transparent 95%, #000 95%);
+            opacity: 0.7;
+        }
+
         /* 遊戲主畫面 */
-        #game-view { display: none; width: 100%; max-width: 1000px; text-align: center; }
-        #canvas-container {
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+        }
+
+        /* 控制列佈局 */
+        .controls-top {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 840px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: var(--card-bg);
+            color: var(--text-dark);
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+        }
+        .btn:hover { background-color: #b5a495; }
+
+        /* 🎵 音樂按鈕樣式 */
+        #btn-audio {
+            background-color: #7d93a4;
+            color: white;
+        }
+        #btn-audio:hover { background-color: #5d7284; }
+
+        /* 拼圖遊玩板塊 */
+        #puzzle-container {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* 右側：收納/散落區 */
+        #pieces-pool {
+            width: 400px;
+            height: 500px;
+            background-color: #2c3238;
+            border-radius: 4px;
             position: relative;
-            margin: 20px auto;
-            background: #eaeaea;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
             overflow: hidden;
         }
-        canvas { display: block; cursor: grab; background: #fff; margin: 0 auto; }
-        canvas:active { cursor: grabbing; }
 
-        /* 徽章彈窗 */
-        #badge-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(85, 94, 101, 0.6);
-            backdrop-filter: blur(4px);
-            justify-content: center; align-items: center;
+        /* 左側：目標底板 */
+        #puzzle-board {
+            width: 400px;
+            height: 400px;
+            background-color: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.2);
+            position: relative;
+        }
+
+        /* 真正的互鎖拼圖塊 */
+        .puzzle-piece {
+            position: absolute;
+            cursor: move;
+            touch-action: none;
+            user-select: none;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));
+            z-index: 10;
+        }
+        .puzzle-piece:active {
+            filter: drop-shadow(5px 5px 8px rgba(0,0,0,0.7));
             z-index: 100;
         }
-        .badge-content {
-            background: #fff;
-            padding: 40px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            max-width: 400px;
-            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .badge-icon { font-size: 60px; margin-bottom: 15px; color: #dfb15b; }
-        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>✨ ALD1 JIGSAW GALLERY ✨</h1>
-    </header>
+    <!-- 🔊 隱藏的音訊標籤 -->
+    <audio id="bg-music" loop></audio>
 
-    <!-- 頂部控制列 -->
-    <div class="controls-top">
-        <button id="btn-back" style="visibility:hidden;" onclick="goBack()">⬅️ 返回大廳</button>
-        <span id="status-text">請先選擇你想玩的拼圖照片與音樂：</span>
-        <div>
-            <button id="btn-audio" onclick="toggleAudio()" style="display:none;">🎵 播放 BGM</button>
-            <audio id="bg-music" loop></audio>
+    <!-- 關卡選擇畫面 -->
+    <div id="selection-screen"></div>
+
+    <!-- 遊戲主畫面 -->
+    <div id="game-screen">
+        <div class="controls-top">
+            <button class="btn" onclick="backToMenu()">← 返回關卡選擇</button>
+            <button class="btn" id="btn-audio" onclick="toggleAudio()">🎵 播放隨機 BGM</button>
         </div>
-    </div>
-
-    <!-- 1. 設定與選檔視圖 -->
-    <div id="setup-view">
-        <h2 style="color:var(--accent-color); margin-top:0;">載入您的畫作</h2>
         
-        <div class="upload-section">
-            <!-- 選擇圖片 -->
-            <label class="file-label" for="input-img">🖼️ 選擇拼圖照片</label>
-            <input type="file" id="input-img" accept="image/*" onchange="handleImgSelect(this)">
-            <span id="img-status" class="file-status">尚未偵測到圖片</span>
-
-            <!-- 選擇音樂 -->
-            <label class="file-label" for="input-audio">🎵 選擇背景音樂 (選填)</label>
-            <input type="file" id="input-audio" accept="audio/*" onchange="handleAudioSelect(this)">
-            <span id="audio-status" class="file-status">沒有音樂也可以玩喔</span>
-        </div>
-
-        <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
-
-        <p id="diff-hint" style="font-size:14px; color:#d9534f; font-weight:bold;">⚠️ 請先點選上方按鈕選擇一張圖片！</p>
-        <div class="difficulty-options">
-            <button id="btn-start-1" disabled onclick="startGame(3, 2)">6 片 (極速)</button>
-            <button id="btn-start-2" disabled onclick="startGame(6, 4)">24 片 (新手)</button>
-            <button id="btn-start-3" disabled onclick="startGame(10, 6)">60 片 (高手)</button>
-            <button id="btn-start-4" disabled onclick="startGame(20, 15)">300 片 (大師級!)</button>
+        <h2 id="current-title" style="margin-bottom: 20px; font-family: monospace;"></h2>
+        
+        <div id="puzzle-container">
+            <!-- 左側置放區 -->
+            <div id="puzzle-board"></div>
+            <!-- 右側零件池 -->
+            <div id="pieces-pool"></div>
         </div>
     </div>
 
-    <!-- 2. 遊戲畫布視圖 -->
-    <div id="game-view">
-        <div style="margin-bottom: 15px; display: flex; justify-content: center; gap: 10px;">
-            <button onclick="saveProgress()">💾 儲存目前進度</button>
-            <button onclick="resetPuzzle()" style="border-color:#d9534f; color:#d9534f;">🔄 重置拼圖</button>
-        </div>
-        <div id="canvas-container">
-            <canvas id="puzzle-canvas"></canvas>
-        </div>
-    </div>
+    <script>
+        // 🖼️ 【新增照片拼圖關卡請改這裡！】
+        // 以後要加新照片，直接按照格式在括號內加上：title 和 imgUrl 即可
+        const levelList = [
+            { title: 'NST_1', imgUrl: 'nst_1.jpg' },
+            { title: 'NST_2', imgUrl: 'nst_2.jpg' },
+            { title: 'NST_3', imgUrl: 'nst_3.jpg' },
+            { title: 'NST_4', imgUrl: 'nst_4.jpg' },
+            { title: 'NST_5', imgUrl: 'nst_5.jpg' },
+            { title: 'NST_6', imgUrl: 'nst_6.jpg' },
+            { title: 'NST_7', imgUrl: 'nst_7.jpg' },
+            { title: 'NST_8', imgUrl: 'nst_8.jpg' },
+        ];
 
-    <!-- 3. 成就感徽章彈窗 -->
-    <div id="badge-modal">
-        <div class="badge-content">
-            <div class="badge-icon">🌿</div>
-            <h2 style="color:var(--accent-color); margin:0;">修復成功！</h2>
-            <p id="badge-text" style="font-size:16px; margin:20px 0; line-height:1.6; color:#666;"></p>
-            <button onclick="closeBadge()">解鎖徽章並返回</button>
-        </div>
-    </div>
+        // 🎼 音樂對照表（維持小寫設定）
+        const playlist = [
+            { file: 'formula.mp3', name: 'FORMULA' },
+            { file: 'freak_alarm.mp3', name: 'Freak Alarm' },
+            { file: 'raw_flame.mp3', name: 'Raw Flame' },
+            { file: 'chains.mp3', name: 'Chains' },
+            { file: 'nb2h.mp3', name: 'Never Been 2 Heaven' },
+            { file: 'cinnamom_shake.mp3', name: 'Cinnamon Shake' },
+            { file: 'omg.mp3', name: 'OMG!' },
+            { file: 'good_life.mp3', name: 'Good Life' },
+            { file: 'go_go.mp3', name: 'GO!GO!' },
+        ];
 
-<script>
-    let img = new Image();
-    let imgLoaded = false;
-    let canvas = document.getElementById('puzzle-canvas');
-    let ctx = canvas.getContext('2d');
-    let audio = document.getElementById('bg-music');
-    
-    let rows, cols, pieces = [], selectedPiece = null;
-    let isAudioPlaying = false;
-    let dragOffsetX = 0, dragOffsetY = 0;
+        // 拼圖參數設定 (3x3 網格)
+        const ROWS = 3;
+        const COLS = 3;
+        const BOARD_SIZE = 400; 
+        const PIECE_SIZE = BOARD_SIZE / ROWS; 
 
-    // 處理圖片選擇
-    function handleImgSelect(input) {
-        if (input.files && input.files[0]) {
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                img.src = e.target.result;
-                img.onload = function() {
-                    imgLoaded = true;
-                    document.getElementById('img-status').innerText = `✅ 已成功載入：${input.files[0].name}`;
-                    document.getElementById('img-status').style.color = '#5cb85c';
-                    document.getElementById('diff-hint').innerText = "✨ 圖片已就緒，請選擇難度開始遊戲！";
-                    document.getElementById('diff-hint').style.color = '#7d93a4';
-                    
-                    // 啟用難度按鈕
-                    for(let i=1; i<=4; i++) {
-                        document.getElementById(`btn-start-${i}`).disabled = false;
+        let currentImgUrl = '';
+        let edgesData = []; 
+        let audio = document.getElementById('bg-music');
+        let isAudioPlaying = false;
+        let currentPlayingTrack = null;
+
+        // 初始化關卡大廳
+        function initMenu() {
+            const screen = document.getElementById('selection-screen');
+            screen.innerHTML = ''; 
+            
+            levelList.forEach(lv => {
+                const card = document.createElement('div');
+                card.className = 'album-card';
+                card.onclick = () => startGame(lv.title, lv.imgUrl);
+                card.innerHTML = `
+                    <div class="album-img-wrapper">
+                        <img class="album-img" src="${lv.imgUrl}" alt="${lv.title}">
+                    </div>
+                    <div class="album-footer">
+                        <span>${lv.title}</span>
+                        <div class="barcode"></div>
+                    </div>
+                `;
+                screen.appendChild(card);
+            });
+        }
+
+        // 🔀 隨機挑選音樂播放的函式
+        function playRandomMusic() {
+            if (playlist.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * playlist.length);
+            currentPlayingTrack = playlist[randomIndex];
+            
+            audio.src = currentPlayingTrack.file;
+            audio.load();
+            
+            audio.play().then(() => {
+                isAudioPlaying = true;
+                document.getElementById('btn-audio').innerText = `⏸️ 暫停: ${currentPlayingTrack.name}`;
+            }).catch(e => {
+                isAudioPlaying = false;
+                document.getElementById('btn-audio').innerText = `🎵 播放隨機 BGM`;
+            });
+        }
+
+        // ⏸️ 手動切換暫停/播放
+        function toggleAudio() {
+            if (!audio.src || !currentPlayingTrack) {
+                playRandomMusic();
+                return;
+            }
+            if (!isAudioPlaying) {
+                audio.play();
+                isAudioPlaying = true;
+                document.getElementById('btn-audio').innerText = `⏸️ 暫停: ${currentPlayingTrack.name}`;
+            } else {
+                audio.pause();
+                isAudioPlaying = false;
+                document.getElementById('btn-audio').innerText = `🎵 播放隨機 BGM`;
+            }
+        }
+
+        function backToMenu() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('selection-screen').style.display = 'grid';
+            document.getElementById('puzzle-board').innerHTML = '';
+            document.getElementById('pieces-pool').innerHTML = '';
+            
+            audio.pause();
+            isAudioPlaying = false;
+            currentPlayingTrack = null;
+            document.getElementById('btn-audio').innerText = `🎵 播放隨機 BGM`;
+        }
+
+        function startGame(title, imgUrl) {
+            document.getElementById('selection-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'flex';
+            document.getElementById('current-title').innerText = `PLAYING: ${title}`;
+            currentImgUrl = imgUrl;
+
+            playRandomMusic();
+            generateEdgeRelations();
+            createPuzzlePieces();
+        }
+
+        // 隨機生成網格每條邊的凹凸關係 (1=凸, -1=凹, 0=平)
+        function generateEdgeRelations() {
+            edgesData = [];
+            for (let r = 0; r < ROWS; r++) {
+                edgesData[r] = [];
+                for (let c = 0; c < COLS; c++) { edgesData[r][c] = [0, 0, 0, 0]; }
+            }
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (c < COLS - 1) {
+                        let type = Math.random() > 0.5 ? 1 : -1;
+                        edgesData[r][c][1] = type; edgesData[r][c+1][3] = -type;
+                    }
+                    if (r < ROWS - 1) {
+                        let type = Math.random() > 0.5 ? 1 : -1;
+                        edgesData[r][c][2] = type; edgesData[r+1][c][0] = -type;
                     }
                 }
             }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    // 處理音樂選擇
-    function handleAudioSelect(input) {
-        if (input.files && input.files[0]) {
-            let objectURL = URL.createObjectURL(input.files[0]);
-            audio.src = objectURL;
-            document.getElementById('audio-status').innerText = `✅ 已成功載入：${input.files[0].name}`;
-            document.getElementById('audio-status').style.color = '#5cb85c';
-            document.getElementById('btn-audio').style.display = 'inline-block';
-        }
-    }
-
-    function toggleAudio() {
-        if(!audio.src) return;
-        if(!isAudioPlaying) {
-            audio.play();
-            document.getElementById('btn-audio').innerText = "⏸️ 暫停 BGM";
-            isAudioPlaying = true;
-        } else {
-            audio.pause();
-            document.getElementById('btn-audio').innerText = "🎵 播放 BGM";
-            isAudioPlaying = false;
-        }
-    }
-
-    function startGame(c, r) {
-        if(!imgLoaded) return;
-        cols = c;
-        rows = r;
-        document.getElementById('setup-view').style.display = 'none';
-        document.getElementById('game-view').style.display = 'block';
-        document.getElementById('btn-back').style.visibility = 'visible';
-        document.getElementById('status-text').innerText = `拼圖大挑戰進行中...`;
-
-        let maxWidth = Math.min(window.innerWidth - 40, 800);
-        let scale = maxWidth / img.naturalWidth;
-        canvas.width = maxWidth;
-        canvas.height = img.naturalHeight * scale;
-
-        // 載入進度檢測
-        let saved = localStorage.getItem('puzzle_save_free');
-        if (saved && JSON.parse(saved).cols === cols && JSON.parse(saved).rows === rows) {
-            pieces = JSON.parse(saved).pieces;
-        } else {
-            initPieces();
         }
 
-        draw();
-        addEventListeners();
-    }
+        // 利用 SVG Path 動態繪製不規則凹凸形狀
+        function createPuzzlePiecePath(top, right, bottom, left) {
+            let s = PIECE_SIZE; let p = s * 0.2; let path = `M 0 0`;
+            if (top === 1) { path += ` H ${s*0.35} C ${s*0.35} ${-p}, ${s*0.4} ${-p}, ${s*0.4} ${-p} C ${s*0.35} ${-p*1.6}, ${s*0.65} ${-p*1.6}, ${s*0.6} ${-p} C ${s*0.6} ${-p}, ${s*0.65} ${-p}, ${s*0.65} 0 H ${s}`; } 
+            else if (top === -1) { path += ` H ${s*0.35} C ${s*0.35} ${p}, ${s*0.4} ${p}, ${s*0.4} ${p} C ${s*0.35} ${p*1.6}, ${s*0.65} ${p*1.6}, ${s*0.6} ${p} C ${s*0.6} ${p}, ${s*0.65} ${p}, ${s*0.65} 0 H ${s}`; } 
+            else { path += ` H ${s}`; }
+            if (right === 1) { path += ` V ${s*0.35} C ${s+p} ${s*0.35}, ${s+p} ${s*0.4}, ${s+p} ${s*0.4} C ${s+p*1.6} ${s*0.35}, ${s+p*1.6} ${s*0.65}, ${s+p} ${s*0.6} C ${s+p} ${s*0.6}, ${s+p} ${s*0.65}, ${s} ${s*0.65} V ${s}`; } 
+            else if (right === -1) { path += ` V ${s*0.35} C ${s-p} ${s*0.35}, ${s-p} ${s*0.4}, ${s-p} ${s*0.4} C ${s-p*1.6} ${s*0.35}, ${s-p*1.6} ${s*0.65}, ${s-p} ${s*0.6} C ${s-p} ${s*0.6}, ${s-p} ${s*0.65}, ${s} ${s*0.65} V ${s}`; } 
+            else { path += ` V ${s}`; }
+            if (bottom === 1) { path += ` H ${s*0.65} C ${s*0.65} ${s+p}, ${s*0.6} ${s+p}, ${s*0.6} ${s+p} C ${s*0.65} ${s+p*1.6}, ${s*0.35} ${s+p*1.6}, ${s*0.4} ${s+p} C ${s*0.4} ${s+p}, ${s*0.35} ${s+p}, ${s*0.35} ${s} H 0`; } 
+            else if (bottom === -1) { path += ` H ${s*0.65} C ${s*0.65} ${s-p}, ${s*0.6} ${s-p}, ${s*0.6} ${s-p} C ${s*0.65} ${s-p*1.6}, ${s*0.35} ${s-p*1.6}, ${s*0.4} ${s-p} C ${s*0.4} ${s-p}, ${s*0.35} ${s-p}, ${s*0.35} ${s} H 0`; } 
+            else { path += ` H 0`; }
+            if (left === 1) { path += ` V ${s*0.65} C ${-p} ${s*0.65}, ${-p} ${s*0.6}, ${-p} ${s*0.6} C ${-p*1.6} ${s*0.65}, ${-p*1.6} ${s*0.35}, ${-p} ${s*0.4} C ${-p} ${s*0.4}, ${-p} ${s*0.35}, 0 ${s*0.35} V 0`; } 
+            else if (left === -1) { path += ` V ${s*0.65} C ${p} ${s*0.65}, ${p} ${s*0.6}, ${p} ${s*0.6} C ${p*1.6} ${s*0.65}, ${p*1.6} ${s*0.35}, ${p} ${s*0.4} C ${p} ${s*0.4}, ${p} ${s*0.35}, 0 ${s*0.35} V 0`; } 
+            else { path += ` V 0`; }
+            path += ` Z`; return path;
+        }
 
-    function initPieces() {
-        pieces = [];
-        let w = canvas.width / cols;
-        let h = canvas.height / rows;
+        // 生成實體拼圖塊
+        function createPuzzlePieces() {
+            const pool = document.getElementById('pieces-pool');
+            const pmax = PIECE_SIZE * 0.3; 
 
-        for (let i = 0; i < cols; i++) {
-            for (let j = 0; j < rows; j++) {
-                pieces.push({
-                    sx: i * (img.naturalWidth / cols),
-                    sy: j * (img.naturalHeight / rows),
-                    sw: img.naturalWidth / cols,
-                    sh: img.naturalHeight / rows,
-                    x: Math.random() * (canvas.width - w),
-                    y: Math.random() * (canvas.height - h),
-                    w: w, h: h,
-                    correctX: i * w,
-                    correctY: j * h,
-                    isLocked: false
-                });
+            let oldSvg = document.getElementById('puzzle-defs');
+            if(oldSvg) oldSvg.remove();
+
+            let svgDefs = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svgDefs.id = "puzzle-defs";
+            svgDefs.style.width = "0"; svgDefs.style.height = "0"; svgDefs.style.position = "absolute";
+            let defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    let edges = edgesData[r][c];
+                    let pathD = createPuzzlePiecePath(edges[0], edges[1], edges[2], edges[3]);
+                    let clipPath = document.createElementNS("http://www.w3.org/2000/svg", "clipPath");
+                    clipPath.setAttribute("id", `clip-${r}-${c}`);
+                    let pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    pathEl.setAttribute("d", pathD);
+                    clipPath.appendChild(pathEl); defs.appendChild(clipPath);
+                }
+            }
+            svgDefs.appendChild(defs); document.body.appendChild(svgDefs);
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const piece = document.createElement('div');
+                    piece.classList.add('puzzle-piece');
+                    piece.style.width = `${PIECE_SIZE + pmax * 2}px`;
+                    piece.style.height = `${PIECE_SIZE + pmax * 2}px`;
+
+                    const targetX = c * PIECE_SIZE - pmax;
+                    const targetY = r * PIECE_SIZE - pmax;
+                    piece.dataset.correctX = targetX; piece.dataset.correctY = targetY;
+
+                    const innerImg = document.createElement('div');
+                    innerImg.style.width = '100%'; innerImg.style.height = '100%';
+                    innerImg.style.backgroundImage = `url(${currentImgUrl})`;
+                    innerImg.style.backgroundSize = `${BOARD_SIZE}px ${BOARD_SIZE}px`;
+                    innerImg.style.backgroundPosition = `-${c * PIECE_SIZE - pmax}px -${r * PIECE_SIZE - pmax}px`;
+                    innerImg.style.clipPath = `url(#clip-${r}-${c})`;
+                    innerImg.style.transform = `translate(${pmax}px, ${pmax}px)`;
+                    piece.appendChild(innerImg);
+
+                    const randomX = Math.random() * (pool.clientWidth - PIECE_SIZE - pmax * 2);
+                    const randomY = Math.random() * (pool.clientHeight - PIECE_SIZE - pmax * 2);
+                    piece.style.left = `${randomX}px`; piece.style.top = `${randomY}px`;
+                    
+                    pool.appendChild(piece);
+                    enableDrag(piece);
+                }
             }
         }
-    }
 
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        pieces.forEach(p => {
-            ctx.save();
-            ctx.drawImage(img, p.sx, p.sy, p.sw, p.sh, p.x, p.y, p.w, p.h);
-            ctx.strokeStyle = p.isLocked ? "rgba(125,147,164,0.15)" : "#fff";
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(p.x, p.y, p.w, p.h);
-            ctx.restore();
-        });
-    }
+        function enableDrag(el) {
+            let offsetX = 0, offsetY = 0; let isDragging = false;
+            el.addEventListener('mousedown', dragStart);
+            el.addEventListener('touchstart', dragStart, { passive: false });
 
-    function addEventListeners() {
-        canvas.onmousedown = handleStart;
-        canvas.onmousemove = handleMove;
-        canvas.onmouseup = handleEnd;
+            function dragStart(e) {
+                e.preventDefault(); isDragging = true;
+                const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+                const rect = el.getBoundingClientRect();
+                offsetX = clientX - rect.left; offsetY = clientY - rect.top;
 
-        canvas.addEventListener('touchstart', e => { handleStart(e.touches[0]); e.preventDefault(); }, {passive:false});
-        canvas.addEventListener('touchmove', e => { handleMove(e.touches[0]); e.preventDefault(); }, {passive:false});
-        canvas.addEventListener('touchend', e => { handleEnd(); e.preventDefault(); }, {passive:false});
-    }
+                if(el.parentElement.id === 'pieces-pool') {
+                    const currentBodyRect = document.body.getBoundingClientRect();
+                    el.style.left = `${rect.left - currentBodyRect.left}px`;
+                    el.style.top = `${rect.top - currentBodyRect.top}px`;
+                    document.body.appendChild(el);
+                }
+                document.addEventListener('mousemove', dragMove);
+                document.addEventListener('touchmove', dragMove, { passive: false });
+                document.addEventListener('mouseup', dragEnd);
+                document.addEventListener('touchend', dragEnd);
+            }
 
-    function handleStart(e) {
-        let rect = canvas.getBoundingClientRect();
-        let mouseX = e.clientX - rect.left;
-        let mouseY = e.clientY - rect.top;
+            function dragMove(e) {
+                if (!isDragging) return;
+                const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                const bodyRect = document.body.getBoundingClientRect();
+                el.style.left = `${clientX - bodyRect.left - offsetX}px`;
+                el.style.top = `${clientY - bodyRect.top - offsetY}px`;
+            }
 
-        selectedPiece = null;
-        for (let i = pieces.length - 1; i >= 0; i--) {
-            let p = pieces[i];
-            if (!p.isLocked && mouseX >= p.x && mouseX <= p.x + p.w && mouseY >= p.y && mouseY <= p.y + p.h) {
-                selectedPiece = p;
-                dragOffsetX = mouseX - p.x;
-                dragOffsetY = mouseY - p.y;
-                pieces.splice(i, 1);
-                pieces.push(selectedPiece);
-                break;
+            function dragEnd() {
+                if (!isDragging) return; isDragging = false;
+                document.removeEventListener('mousemove', dragMove);
+                document.removeEventListener('touchmove', dragMove);
+                document.removeEventListener('mouseup', dragEnd);
+                document.removeEventListener('touchend', dragEnd);
+
+                const board = document.getElementById('puzzle-board');
+                const boardRect = board.getBoundingClientRect();
+                const pieceRect = el.getBoundingClientRect();
+                const relativeX = pieceRect.left - boardRect.left;
+                const relativeY = pieceRect.top - boardRect.top;
+                const targetX = parseFloat(el.dataset.correctX);
+                const targetY = parseFloat(el.dataset.correctY);
+
+                if (Math.abs(relativeX - targetX) < 30 && Math.abs(relativeY - targetY) < 30) {
+                    el.style.left = `${targetX}px`; el.style.top = `${targetY}px`;
+                    board.appendChild(el); el.style.cursor = 'default';
+                    el.removeEventListener('mousedown', dragStart);
+                    el.removeEventListener('touchstart', dragStart);
+                    checkWinCondition();
+                }
             }
         }
-    }
 
-    function handleMove(e) {
-        if (!selectedPiece) return;
-        let rect = canvas.getBoundingClientRect();
-        selectedPiece.x = (e.clientX - rect.left) - dragOffsetX;
-        selectedPiece.y = (e.clientY - rect.top) - dragOffsetY;
-        draw();
-    }
-
-    function handleEnd() {
-        if (!selectedPiece) return;
-        let tolerance = 20; 
-        if (Math.abs(selectedPiece.x - selectedPiece.correctX) < tolerance && 
-            Math.abs(selectedPiece.y - selectedPiece.correctY) < tolerance) {
-            selectedPiece.x = selectedPiece.correctX;
-            selectedPiece.y = selectedPiece.correctY;
-            selectedPiece.isLocked = true;
+        function checkWinCondition() {
+            const board = document.getElementById('puzzle-board');
+            if (board.children.length === (ROWS * COLS)) {
+                setTimeout(() => { alert('🎉 太厲害了！順利拼好了專輯！'); }, 300);
+            }
         }
-        selectedPiece = null;
-        draw();
-        checkWin();
-    }
 
-    function saveProgress() {
-        let lockedCount = pieces.filter(p => p.isLocked).length;
-        let percent = Math.floor((lockedCount / pieces.length) * 100);
-        localStorage.setItem('puzzle_save_free', JSON.stringify({cols, rows, pieces}));
-        alert(`進度已儲存！目前完成度：${percent}%`);
-    }
-
-    function resetPuzzle() {
-        if(confirm("確定要重置拼圖嗎？")) {
-            initPieces();
-            draw();
-        }
-    }
-
-    function checkWin() {
-        if (pieces.every(p => p.isLocked)) {
-            localStorage.removeItem('puzzle_save_free');
-            document.getElementById('badge-text').innerHTML = `恭喜你！<br>成功完成了這幅美麗的拼圖！<br>獲得專屬認證徽章 🌿`;
-            document.getElementById('badge-modal').style.display = 'flex';
-        }
-    }
-
-    function closeBadge() {
-        document.getElementById('badge-modal').style.display = 'none';
-        goBack();
-    }
-
-    function goBack() {
-        document.getElementById('game-view').style.display = 'none';
-        document.getElementById('setup-view').style.display = 'block';
-        document.getElementById('btn-back').style.visibility = 'hidden';
-        document.getElementById('status-text').innerText = "請選擇你想玩的拼圖照片與音樂：";
-    }
-</script>
+        // 啟動網頁選單初始化
+        initMenu();
+    </script>
 </body>
 </html>
