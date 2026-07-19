@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALD1 Jigsaw Gallery | 拼圖畫廊</title>
+    <title>ALD1 Jigsaw Gallery | 莫蘭迪拼圖畫廊</title>
     <style>
         :root {
-            --bg-color: #0b0c10;
-            --container-bg: #1f2833;
-            --accent-color: #66fcf1;
-            --text-color: #c5c6c7;
+            /* 高級感莫蘭迪調色盤 */
+            --bg-color: #f4f3ef;         /* 燕麥暖白 */
+            --container-bg: #e2e7e6;     /* 灰豆綠 */
+            --panel-bg: #ffffff;
+            --accent-color: #7d93a4;     /* 煙燻藍 */
+            --accent-hover: #5d7284;
+            --text-color: #555e65;       /* 炭灰 */
+            --border-color: #ced4da;
         }
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, 'Microsoft JhengHei', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -23,75 +27,56 @@
         }
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             width: 100%;
             max-width: 900px;
         }
-        h1 { color: var(--accent-color); margin: 5px 0; font-size: 28px; letter-spacing: 2px; }
+        h1 { color: var(--accent-color); margin: 5px 0; font-size: 26px; letter-spacing: 2px; font-weight: 600; }
+        header p { color: #8a9597; font-size: 14px; margin: 5px 0; }
         
-        /* 音樂播放器與導覽 */
+        /* 頂部控制列 */
         .controls-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--container-bg);
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 1px solid var(--accent-color);
+            background: var(--panel-bg);
+            padding: 12px 20px;
+            border-radius: 12px;
             margin-bottom: 20px;
             width: 100%;
             max-width: 860px;
-            box-shadow: 0 0 10px rgba(102, 252, 241, 0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
         }
         button {
-            background: transparent;
-            border: 2px solid var(--accent-color);
+            background: var(--panel-bg);
+            border: 1.5px solid var(--accent-color);
             color: var(--accent-color);
             padding: 8px 16px;
             cursor: pointer;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: all 0.2s;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
         }
-        button:hover { background: var(--accent-color); color: var(--bg-color); }
-        
-        /* 畫廊大廳 */
-        #gallery-view {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 900px;
-            margin-top: 20px;
-        }
-        .gallery-card {
-            background: var(--container-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #45a29e;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .gallery-card:hover { transform: translateY(-5px); border-color: var(--accent-color); }
-        .gallery-card img { width: 100%; height: 160px; object-fit: cover; }
-        .gallery-card .info { padding: 15px; text-align: center; }
-        .gallery-card h3 { margin: 0 0 10px 0; color: #fff; }
+        button:hover { background: var(--accent-color); color: #fff; }
 
         /* 難度選擇面板 */
-        #setup-view { display: none; text-align: center; background: var(--container-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--accent-color); }
-        .difficulty-options { display: flex; gap: 15px; justify-content: center; margin: 20px 0; }
+        #setup-view { text-align: center; background: var(--panel-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 500px; box-sizing: border-box; }
+        .difficulty-options { display: flex; gap: 12px; justify-content: center; margin: 25px 0; flex-wrap: wrap; }
         
         /* 遊戲主畫面 */
         #game-view { display: none; width: 100%; max-width: 1000px; text-align: center; }
         #canvas-container {
             position: relative;
             margin: 20px auto;
-            background: #151515;
-            border: 2px solid #45a29e;
-            border-radius: 4px;
+            background: #eaeaea;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
             overflow: hidden;
         }
-        canvas { display: block; cursor: grab; }
+        canvas { display: block; cursor: grab; background: #fff; margin: 0 auto; }
         canvas:active { cursor: grabbing; }
 
         /* 徽章彈窗 */
@@ -99,118 +84,91 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: rgba(85, 94, 101, 0.6);
+            backdrop-filter: blur(4px);
             justify-content: center; align-items: center;
             z-index: 100;
         }
         .badge-content {
-            background: var(--container-bg);
+            background: #fff;
             padding: 40px;
-            border-radius: 12px;
-            border: 3px solid var(--accent-color);
+            border-radius: 16px;
             text-align: center;
-            box-shadow: 0 0 30px var(--accent-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            max-width: 400px;
             animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .badge-icon { font-size: 70px; margin-bottom: 20px; animation: spin 2s infinite linear; }
-        @keyframes pop { from { transform: scale(0.5); } to { transform: scale(1); } }
+        .badge-icon { font-size: 60px; margin-bottom: 15px; color: #dfb15b; }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
     <header>
         <h1>✨ ALD1 JIGSAW GALLERY ✨</h1>
-        <p>跟著 《OMG!》 的節奏，拼湊出專屬 ALLYZ 的璀璨舞台</p>
+        <p>跟著《OMG!》的節奏，拼湊出專屬 ALLYZ 的璀璨舞台</p>
     </header>
 
     <!-- 頂部控制列 -->
     <div class="controls-top">
-        <button id="btn-back" style="display:none;" onclick="goBack()">⬅️ 返回畫廊</button>
-        <span id="status-text">選擇你想挑戰的相簿：</span>
+        <button id="btn-back" style="visibility:hidden;" onclick="goBack()">⬅️ 返回大廳</button>
+        <span id="status-text">舞台已就緒，請選擇難度：</span>
         <div>
-            <!-- BGM 控制項目 -->
             <button id="btn-audio" onclick="toggleAudio()">🎵 播放 BGM</button>
-            <audio id="bg-music" loop src="bgm.mp3"></audio>
+            <audio id="bg-music" src="bgm.mp3" loop></audio>
         </div>
     </div>
 
-    <!-- 1. 畫廊大廳視圖 -->
-    <div id="gallery-view">
-        <div class="gallery-card" onclick="selectPhoto('group_omg.jpg', '《OMG!》團體概念照')">
-            <img src="group_omg.jpg" alt="ALD1 Group">
-            <div class="info">
-                <h3>《OMG!》團體概念照</h3>
-                <p style="font-size: 13px; color:#45a29e;">目前進度：<span id="progress-group">新挑戰</span></p>
-            </div>
-        </div>
-        <!-- 未來想增加新照片，直接複製上方這塊 div 改檔名即可！ -->
-    </div>
-
-    <!-- 2. 設定難度視圖 -->
+    <!-- 1. 設定難度視圖 -->
     <div id="setup-view">
-        <h2 id="setup-title">選擇拼圖片數</h2>
-        <p>根據你的裝置與耐心，自由選擇切片數量：</p>
+        <h2 style="color:var(--accent-color); margin-top:0;">選擇拼圖片數</h2>
+        <p>根據你的裝置與時間，自由選擇切片數量：</p>
         <div class="difficulty-options">
             <button onclick="startGame(3, 2)">6 片 (極速)</button>
             <button onclick="startGame(6, 4)">24 片 (新手)</button>
             <button onclick="startGame(10, 6)">60 片 (高手)</button>
             <button onclick="startGame(20, 15)">300 片 (大師級!)</button>
         </div>
-        <p style="color: #45a29e; font-size:13px;">※ 提示：300片建議使用電腦遊玩喔！網頁會自動為您記錄進度。</p>
     </div>
 
-    <!-- 3. 遊戲畫布視圖 -->
+    <!-- 2. 遊戲畫布視圖 -->
     <div id="game-view">
-        <div style="margin-bottom: 10px;">
+        <div style="margin-bottom: 15px; display: flex; justify-content: center; gap: 10px;">
             <button onclick="saveProgress()">💾 儲存目前進度</button>
-            <button onclick="resetPuzzle()" style="border-color:#ff4757; color:#ff4757;">🔄 重置拼圖</button>
+            <button onclick="resetPuzzle()" style="border-color:#d9534f; color:#d9534f;">🔄 重置拼圖</button>
         </div>
         <div id="canvas-container">
             <canvas id="puzzle-canvas"></canvas>
         </div>
     </div>
 
-    <!-- 4. 成就感徽章彈窗 -->
+    <!-- 3. 成就感徽章彈窗 -->
     <div id="badge-modal">
         <div class="badge-content">
-            <div class="badge-icon">🏆</div>
-            <h2 style="color:var(--accent-color); margin:0;">神級修復成功！</h2>
-            <p id="badge-text" style="font-size:18px; margin:20px 0; line-height:1.6;"></p>
-            <button onclick="closeBadge()">收集徽章並返回大廳</button>
+            <div class="badge-icon">🌿</div>
+            <h2 style="color:var(--accent-color); margin:0;">修復成功！</h2>
+            <p id="badge-text" style="font-size:16px; margin:20px 0; line-height:1.6; color:#666;"></p>
+            <button onclick="closeBadge()">解鎖徽章並返回</button>
         </div>
     </div>
 
 <script>
-    // 遊戲全域變數
-    let currentImgSrc = '';
-    let currentImgTitle = '';
     let img = new Image();
+    img.src = 'group_omg.jpg'; // 自動讀取同資料夾下的圖片
+    
     let canvas = document.getElementById('puzzle-canvas');
     let ctx = canvas.getContext('2d');
+    let audio = document.getElementById('bg-music');
     
     let rows, cols, pieces = [], selectedPiece = null;
     let isAudioPlaying = false;
     let dragOffsetX = 0, dragOffsetY = 0;
 
-    // 載入時檢查是否有舊進度
-    window.onload = function() {
-        updateGalleryProgress();
-    };
-
-    function updateGalleryProgress() {
-        let saved = localStorage.getItem('puzzle_save_group_omg.jpg');
-        if (saved) {
-            let data = JSON.parse(saved);
-            document.getElementById('progress-group').innerText = `已完成 ${data.percent}%`;
-            document.getElementById('progress-group').style.color = 'var(--accent-color)';
-        }
-    }
-
-    // 音樂開關
     function toggleAudio() {
-        let audio = document.getElementById('bg-music');
         if(!isAudioPlaying) {
-            audio.play().catch(e => alert("請先點擊網頁任意地方，再開啟音樂喔！"));
+            audio.play().catch(e => {
+                alert("瀏覽器限制：請先點擊網頁任意地方，再點擊播放音樂！");
+            });
             document.getElementById('btn-audio').innerText = "⏸️ 暫停 BGM";
             isAudioPlaying = true;
         } else {
@@ -220,40 +178,24 @@
         }
     }
 
-    // 選擇相片
-    function selectPhoto(src, title) {
-        currentImgSrc = src;
-        currentImgTitle = title;
-        document.getElementById('gallery-view').style.display = 'none';
-        document.getElementById('setup-view').style.display = 'block';
-        document.getElementById('btn-back').style.display = 'inline-block';
-        document.getElementById('setup-title').innerText = title;
-        
-        img.src = src;
-    }
-
-    // 開始遊戲（初始化拼圖）
     function startGame(c, r) {
         cols = c;
         rows = r;
         document.getElementById('setup-view').style.display = 'none';
         document.getElementById('game-view').style.display = 'block';
-        document.getElementById('status-text').innerText = `正在挑戰：${currentImgTitle}`;
+        document.getElementById('btn-back').style.visibility = 'visible';
+        document.getElementById('status-text').innerText = `《OMG!》拼圖大挑戰進行中`;
 
-        // 縮放並設定畫布大小 (配合手機與電腦螢幕)
         let maxWidth = Math.min(window.innerWidth - 40, 800);
         let scale = maxWidth / img.naturalWidth;
         canvas.width = maxWidth;
         canvas.height = img.naturalHeight * scale;
 
-        // 檢查是否有儲存進度
-        let saved = localStorage.getItem('puzzle_save_' + currentImgSrc);
+        // 載入進度檢測
+        let saved = localStorage.getItem('puzzle_save_online');
         if (saved && JSON.parse(saved).cols === cols && JSON.parse(saved).rows === rows) {
-            // 載入進度
-            let data = JSON.parse(saved);
-            pieces = data.pieces;
+            pieces = JSON.parse(saved).pieces;
         } else {
-            // 新局：建立切片
             initPieces();
         }
 
@@ -261,7 +203,6 @@
         addEventListeners();
     }
 
-    // 初始化拼圖塊
     function initPieces() {
         pieces = [];
         let w = canvas.width / cols;
@@ -274,7 +215,6 @@
                     sy: j * (img.naturalHeight / rows),
                     sw: img.naturalWidth / cols,
                     sh: img.naturalHeight / rows,
-                    // 目前在畫布上的座標（打散）
                     x: Math.random() * (canvas.width - w),
                     y: Math.random() * (canvas.height - h),
                     w: w, h: h,
@@ -286,27 +226,18 @@
         }
     }
 
-    // 繪製畫布
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 1. 先畫未鎖定的拼圖碎片
         pieces.forEach(p => {
             ctx.save();
-            // 為碎片加上精緻邊框陰影
-            ctx.shadowBlur = p.isLocked ? 0 : 4;
-            ctx.shadowColor = "rgba(0,0,0,0.5)";
             ctx.drawImage(img, p.sx, p.sy, p.sw, p.sh, p.x, p.y, p.w, p.h);
-            
-            // 畫格線邊框
-            ctx.strokeStyle = p.isLocked ? "rgba(102,252,241,0.2)" : "#333";
-            ctx.lineWidth = p.isLocked ? 1 : 1.5;
+            ctx.strokeStyle = p.isLocked ? "rgba(125,147,164,0.15)" : "#fff";
+            ctx.lineWidth = 1.5;
             ctx.strokeRect(p.x, p.y, p.w, p.h);
             ctx.restore();
         });
     }
 
-    // 監聽拖曳事件 (支援電腦與手機觸控)
     function addEventListeners() {
         canvas.onmousedown = handleStart;
         canvas.onmousemove = handleMove;
@@ -322,7 +253,6 @@
         let mouseX = e.clientX - rect.left;
         let mouseY = e.clientY - rect.top;
 
-        // 從最後面（最上層）開始找被點擊的未鎖定碎片
         selectedPiece = null;
         for (let i = pieces.length - 1; i >= 0; i--) {
             let p = pieces[i];
@@ -330,7 +260,6 @@
                 selectedPiece = p;
                 dragOffsetX = mouseX - p.x;
                 dragOffsetY = mouseY - p.y;
-                // 把點擊的拼圖移到陣列最後面，讓它顯示在最上層
                 pieces.splice(i, 1);
                 pieces.push(selectedPiece);
                 break;
@@ -348,53 +277,36 @@
 
     function handleEnd() {
         if (!selectedPiece) return;
-        
-        // 檢查是否接近正確位置 (磁吸判定)
         let tolerance = 20; 
         if (Math.abs(selectedPiece.x - selectedPiece.correctX) < tolerance && 
             Math.abs(selectedPiece.y - selectedPiece.correctY) < tolerance) {
             selectedPiece.x = selectedPiece.correctX;
             selectedPiece.y = selectedPiece.correctY;
-            selectedPiece.isLocked = true; // 鎖定
+            selectedPiece.isLocked = true;
         }
-
         selectedPiece = null;
         draw();
         checkWin();
     }
 
-    // 儲存進度至 LocalStorage
     function saveProgress() {
         let lockedCount = pieces.filter(p => p.isLocked).length;
         let percent = Math.floor((lockedCount / pieces.length) * 100);
-        
-        let saveData = {
-            cols: cols, rows: rows,
-            percent: percent,
-            pieces: pieces
-        };
-        localStorage.setItem('puzzle_save_' + currentImgSrc, JSON.stringify(saveData));
+        localStorage.setItem('puzzle_save_online', JSON.stringify({cols, rows, pieces}));
         alert(`進度已儲存！目前完成度：${percent}%`);
-        updateGalleryProgress();
     }
 
-    // 重置拼圖
     function resetPuzzle() {
-        if(confirm("確定要重置這張拼圖嗎？目前的進度會消失喔！")) {
+        if(confirm("確定要重置拼圖嗎？")) {
             initPieces();
             draw();
         }
     }
 
-    // 檢查是否通關
     function checkWin() {
-        let allLocked = pieces.every(p => p.isLocked);
-        if (allLocked) {
-            localStorage.removeItem('puzzle_save_' + currentImgSrc); // 破關後清除進度
-            localStorage.setItem('puzzle_save_' + currentImgSrc, JSON.stringify({percent: 100}));
-            
-            // 彈出華麗徽章
-            document.getElementById('badge-text').innerHTML = `恭喜傲嬌真愛粉！<br>你成功拼完了 <b>${currentImgTitle}</b>！<br>成功獲得官方限定電子認證徽章！✨`;
+        if (pieces.every(p => p.isLocked)) {
+            localStorage.removeItem('puzzle_save_online');
+            document.getElementById('badge-text').innerHTML = `恭喜 ALLYZ 真愛粉！<br>你成功拼完這張超帥的打歌舞台！<br>獲得專屬莫蘭迪認證徽章 🌿`;
             document.getElementById('badge-modal').style.display = 'flex';
         }
     }
@@ -406,13 +318,10 @@
 
     function goBack() {
         document.getElementById('game-view').style.display = 'none';
-        document.getElementById('setup-view').style.display = 'none';
-        document.getElementById('gallery-view').style.display = 'grid';
-        document.getElementById('btn-back').style.display = 'none';
-        document.getElementById('status-text').innerText = "選擇你想挑戰的相簿：";
-        updateGalleryProgress();
+        document.getElementById('setup-view').style.display = 'block';
+        document.getElementById('btn-back').style.visibility = 'hidden';
+        document.getElementById('status-text').innerText = "舞台已就緒，請選擇難度：";
     }
 </script>
-
 </body>
 </html>
