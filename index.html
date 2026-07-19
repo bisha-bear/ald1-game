@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALD1 經紀人日記：後台危機</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0b0c10;
+            color: #c5c6c7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #game-container {
+            background-color: #1f2833;
+            border: 2px solid #66fcf1;
+            border-radius: 10px;
+            padding: 30px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 0 20px rgba(102, 252, 241, 0.2);
+            text-align: center;
+        }
+        h1 { color: #66fcf1; margin-top: 0; font-size: 24px; }
+        #story-text { font-size: 18px; line-height: 1.6; margin-bottom: 30px; min-height: 100px; }
+        .btn-container { display: flex; flex-direction: column; gap: 10px; }
+        button {
+            background-color: transparent;
+            border: 2px solid #45f3ff;
+            color: #45f3ff;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover { background-color: #45f3ff; color: #0b0c10; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>✨ ALD1 Manager Simulator ✨</h1>
+    <p id="story-text">載入中...</p>
+    <div id="btn-container" class="btn-container"></div>
+</div>
+
+<script>
+    // 遊戲劇情資料庫
+    const storyData = {
+        start: {
+            text: "今天是 ALPHA DRIVE ONE 打歌舞台的日子！後台一片混亂，宣傳歐尼急忙跑來找你：『經紀人！等等就要彩排《FREAK ALARM》了，但成員們現在分散在各處，快去確認大家的狀態！』\n\n你要先去哪裡？",
+            options: [
+                { text: "去主休息室找隊長 LEO", next: "room_leo" },
+                { text: "去練習室找正在熱身的 ARNO 和 俊抒", next: "room_dance" }
+            ]
+        },
+        room_leo: {
+            text: "你走進休息室，看到隊長 LEO 正一臉嚴肅地看著舞台走位表。看見你進來，他揉了揉太陽穴微笑道：『啊，經紀人你來了。剛剛確認了一下音響，感覺等等的低音表現要再調整呢。』",
+            options: [
+                { text: "稱讚他認真，並遞上冰美式咖啡", next: "leo_happy" },
+                { text: "跟他說鑫隆和安信也在找他", next: "start" }
+            ]
+        },
+        room_dance: {
+            text: "你來到練習室，ARNO 和 俊抒正在對著鏡子練習《EUPHORIA》的副歌舞蹈。ARNO 的額頭滿是汗水，俊抒則笑著對你揮手：『經紀人！你看我們剛剛這個動作齊不齊？』",
+            options: [
+                { text: "「超齊！真不愧是我們 ALD1 的主舞線！」", next: "dance_happy" },
+                { text: "提醒他們距離彩排只剩 10 分鐘，快去換衣服", next: "start" }
+            ]
+        },
+        leo_happy: {
+            text: "LEO 接過咖啡，眼睛一亮：『哇，真是及時雨！謝謝經紀人，等一下彩排看我們的吧，絕對會炸翻舞台的！』\n\n【成功提升了 LEO 的信賴度！遊戲第一章結束】",
+            options: [
+                { text: "重頭開始", next: "start" }
+            ]
+        },
+        dance_happy: {
+            text: "俊抒高興地跟 ARNO 擊掌，ARNO 也露出了自信的笑容：『好！那等一下舞台我們直接開全麥！』\n\n【成功點燃了成員的鬥志！遊戲第一章結束】",
+            options: [
+                { text: "重頭開始", next: "start" }
+            ]
+        }
+    };
+
+    // 控制遊戲畫面的函式
+    function showStory(nodeId) {
+        const node = storyData[nodeId];
+        document.getElementById('story-text').innerText = node.text;
+        
+        const btnContainer = document.getElementById('btn-container');
+        btnContainer.innerHTML = ''; // 清空舊的按鈕
+        
+        node.options.forEach(option => {
+            const button = document.createElement('button');
+            button.innerText = option.text;
+            button.onclick = () => showStory(option.next);
+            btnContainer.appendChild(button);
+        });
+    }
+
+    // 遊戲初始化，從 'start' 開始
+    showStory('start');
+</script>
+
+</body>
+</html>
