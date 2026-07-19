@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALD1 Jigsaw Gallery | 莫蘭迪拼圖畫廊</title>
+    <title>ALD1 Jigsaw</title>
     <style>
         :root {
             /* 高級感莫蘭迪調色盤 */
@@ -32,7 +32,6 @@
             max-width: 900px;
         }
         h1 { color: var(--accent-color); margin: 5px 0; font-size: 26px; letter-spacing: 2px; font-weight: 600; }
-        header p { color: #8a9597; font-size: 14px; margin: 5px 0; }
         
         /* 頂部控制列 */
         .controls-top {
@@ -48,7 +47,9 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             border: 1px solid #e9ecef;
         }
-        button {
+        
+        /* 按鈕樣式 */
+        button, .file-label {
             background: var(--panel-bg);
             border: 1.5px solid var(--accent-color);
             color: var(--accent-color);
@@ -58,12 +59,17 @@
             font-weight: 500;
             font-size: 14px;
             transition: all 0.2s ease;
+            display: inline-block;
         }
-        button:hover { background: var(--accent-color); color: #fff; }
+        button:hover, .file-label:hover { background: var(--accent-color); color: #fff; }
+        input[type="file"] { display: none; } /* 隱藏醜醜的原生按鈕 */
 
-        /* 難度選擇面板 */
+        /* 檔案準備面板 */
         #setup-view { text-align: center; background: var(--panel-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 500px; box-sizing: border-box; }
-        .difficulty-options { display: flex; gap: 12px; justify-content: center; margin: 25px 0; flex-wrap: wrap; }
+        .upload-section { display: flex; flex-direction: column; gap: 15px; margin: 20px 0; align-items: center; }
+        .file-status { font-size: 13px; color: #8a9597; margin-top: -10px; }
+        .difficulty-options { display: flex; gap: 12px; justify-content: center; margin-top: 25px; flex-wrap: wrap; }
+        .difficulty-options button:disabled { border-color: #ccc; color: #ccc; cursor: not-allowed; background: #fafafa; }
         
         /* 遊戲主畫面 */
         #game-view { display: none; width: 100%; max-width: 1000px; text-align: center; }
@@ -106,28 +112,42 @@
 
     <header>
         <h1>✨ ALD1 JIGSAW GALLERY ✨</h1>
-        <p>跟著《OMG!》的節奏，拼湊出專屬 ALLYZ 的璀璨舞台</p>
     </header>
 
     <!-- 頂部控制列 -->
     <div class="controls-top">
         <button id="btn-back" style="visibility:hidden;" onclick="goBack()">⬅️ 返回大廳</button>
-        <span id="status-text">舞台已就緒，請選擇難度：</span>
+        <span id="status-text">請先選擇你想玩的拼圖照片與音樂：</span>
         <div>
-            <button id="btn-audio" onclick="toggleAudio()">🎵 播放 BGM</button>
-            <audio id="bg-music" src="bgm.mp3" loop></audio>
+            <button id="btn-audio" onclick="toggleAudio()" style="display:none;">🎵 播放 BGM</button>
+            <audio id="bg-music" loop></audio>
         </div>
     </div>
 
-    <!-- 1. 設定難度視圖 -->
+    <!-- 1. 設定與選檔視圖 -->
     <div id="setup-view">
-        <h2 style="color:var(--accent-color); margin-top:0;">選擇拼圖片數</h2>
-        <p>根據你的裝置與時間，自由選擇切片數量：</p>
+        <h2 style="color:var(--accent-color); margin-top:0;">載入您的畫作</h2>
+        
+        <div class="upload-section">
+            <!-- 選擇圖片 -->
+            <label class="file-label" for="input-img">🖼️ 選擇拼圖照片</label>
+            <input type="file" id="input-img" accept="image/*" onchange="handleImgSelect(this)">
+            <span id="img-status" class="file-status">尚未偵測到圖片</span>
+
+            <!-- 選擇音樂 -->
+            <label class="file-label" for="input-audio">🎵 選擇背景音樂 (選填)</label>
+            <input type="file" id="input-audio" accept="audio/*" onchange="handleAudioSelect(this)">
+            <span id="audio-status" class="file-status">沒有音樂也可以玩喔</span>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+
+        <p id="diff-hint" style="font-size:14px; color:#d9534f; font-weight:bold;">⚠️ 請先點選上方按鈕選擇一張圖片！</p>
         <div class="difficulty-options">
-            <button onclick="startGame(3, 2)">6 片 (極速)</button>
-            <button onclick="startGame(6, 4)">24 片 (新手)</button>
-            <button onclick="startGame(10, 6)">60 片 (高手)</button>
-            <button onclick="startGame(20, 15)">300 片 (大師級!)</button>
+            <button id="btn-start-1" disabled onclick="startGame(3, 2)">6 片 (極速)</button>
+            <button id="btn-start-2" disabled onclick="startGame(6, 4)">24 片 (新手)</button>
+            <button id="btn-start-3" disabled onclick="startGame(10, 6)">60 片 (高手)</button>
+            <button id="btn-start-4" disabled onclick="startGame(20, 15)">300 片 (大師級!)</button>
         </div>
     </div>
 
@@ -154,8 +174,7 @@
 
 <script>
     let img = new Image();
-    img.src = 'group_omg.jpg'; // 自動讀取同資料夾下的圖片
-    
+    let imgLoaded = false;
     let canvas = document.getElementById('puzzle-canvas');
     let ctx = canvas.getContext('2d');
     let audio = document.getElementById('bg-music');
@@ -164,11 +183,44 @@
     let isAudioPlaying = false;
     let dragOffsetX = 0, dragOffsetY = 0;
 
+    // 處理圖片選擇
+    function handleImgSelect(input) {
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                img.onload = function() {
+                    imgLoaded = true;
+                    document.getElementById('img-status').innerText = `✅ 已成功載入：${input.files[0].name}`;
+                    document.getElementById('img-status').style.color = '#5cb85c';
+                    document.getElementById('diff-hint').innerText = "✨ 圖片已就緒，請選擇難度開始遊戲！";
+                    document.getElementById('diff-hint').style.color = '#7d93a4';
+                    
+                    // 啟用難度按鈕
+                    for(let i=1; i<=4; i++) {
+                        document.getElementById(`btn-start-${i}`).disabled = false;
+                    }
+                }
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // 處理音樂選擇
+    function handleAudioSelect(input) {
+        if (input.files && input.files[0]) {
+            let objectURL = URL.createObjectURL(input.files[0]);
+            audio.src = objectURL;
+            document.getElementById('audio-status').innerText = `✅ 已成功載入：${input.files[0].name}`;
+            document.getElementById('audio-status').style.color = '#5cb85c';
+            document.getElementById('btn-audio').style.display = 'inline-block';
+        }
+    }
+
     function toggleAudio() {
+        if(!audio.src) return;
         if(!isAudioPlaying) {
-            audio.play().catch(e => {
-                alert("瀏覽器限制：請先點擊網頁任意地方，再點擊播放音樂！");
-            });
+            audio.play();
             document.getElementById('btn-audio').innerText = "⏸️ 暫停 BGM";
             isAudioPlaying = true;
         } else {
@@ -179,12 +231,13 @@
     }
 
     function startGame(c, r) {
+        if(!imgLoaded) return;
         cols = c;
         rows = r;
         document.getElementById('setup-view').style.display = 'none';
         document.getElementById('game-view').style.display = 'block';
         document.getElementById('btn-back').style.visibility = 'visible';
-        document.getElementById('status-text').innerText = `《OMG!》拼圖大挑戰進行中`;
+        document.getElementById('status-text').innerText = `拼圖大挑戰進行中...`;
 
         let maxWidth = Math.min(window.innerWidth - 40, 800);
         let scale = maxWidth / img.naturalWidth;
@@ -192,7 +245,7 @@
         canvas.height = img.naturalHeight * scale;
 
         // 載入進度檢測
-        let saved = localStorage.getItem('puzzle_save_online');
+        let saved = localStorage.getItem('puzzle_save_free');
         if (saved && JSON.parse(saved).cols === cols && JSON.parse(saved).rows === rows) {
             pieces = JSON.parse(saved).pieces;
         } else {
@@ -292,7 +345,7 @@
     function saveProgress() {
         let lockedCount = pieces.filter(p => p.isLocked).length;
         let percent = Math.floor((lockedCount / pieces.length) * 100);
-        localStorage.setItem('puzzle_save_online', JSON.stringify({cols, rows, pieces}));
+        localStorage.setItem('puzzle_save_free', JSON.stringify({cols, rows, pieces}));
         alert(`進度已儲存！目前完成度：${percent}%`);
     }
 
@@ -305,8 +358,8 @@
 
     function checkWin() {
         if (pieces.every(p => p.isLocked)) {
-            localStorage.removeItem('puzzle_save_online');
-            document.getElementById('badge-text').innerHTML = `恭喜 ALLYZ 真愛粉！<br>你成功拼完這張超帥的打歌舞台！<br>獲得專屬莫蘭迪認證徽章 🌿`;
+            localStorage.removeItem('puzzle_save_free');
+            document.getElementById('badge-text').innerHTML = `恭喜你！<br>成功完成了這幅美麗的拼圖！<br>獲得專屬認證徽章 🌿`;
             document.getElementById('badge-modal').style.display = 'flex';
         }
     }
@@ -320,7 +373,7 @@
         document.getElementById('game-view').style.display = 'none';
         document.getElementById('setup-view').style.display = 'block';
         document.getElementById('btn-back').style.visibility = 'hidden';
-        document.getElementById('status-text').innerText = "舞台已就緒，請選擇難度：";
+        document.getElementById('status-text').innerText = "請選擇你想玩的拼圖照片與音樂：";
     }
 </script>
 </body>
