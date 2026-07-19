@@ -27,29 +27,36 @@
             justify-content: center;
             overflow-x: hidden;
             color: #fff;
+            padding: 20px;
         }
 
-        /* 關卡選擇畫面 - 響應式網格 */
+        /* 關卡選擇畫面 */
         #selection-screen {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 30px;
-            padding: 40px;
-            max-width: 800px;
+            padding: 20px;
+            max-width: 900px;
             width: 100%;
         }
 
-        /* 專輯盒 3D 樣式 */
+        @media (max-width: 600px) {
+            #selection-screen {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* 專輯盒外觀 */
         .album-card {
             background-color: var(--card-bg);
-            padding: 12px 12px 45px 12px;
+            padding: 12px 12px 50px 12px;
             position: relative;
             box-shadow: 
                 5px 5px 0px rgba(0,0,0,0.2),
                 10px 10px 15px rgba(0,0,0,0.3);
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            aspect-ratio: 1 / 1;
             display: flex;
             flex-direction: column;
         }
@@ -85,21 +92,20 @@
         .album-img-wrapper {
             position: relative;
             width: 100%;
-            flex-grow: 1;
             overflow: hidden;
             background: #222;
         }
 
         .album-img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            display: block;
+            object-fit: contain;
         }
 
         /* 底部文字與條形碼 */
         .album-footer {
             position: absolute;
-            bottom: 8px;
+            bottom: 10px;
             left: 12px;
             right: 12px;
             display: flex;
@@ -129,18 +135,17 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 1000px;
-            padding: 20px;
+            max-width: 1100px;
         }
 
-        /* 控制列佈局 */
         .controls-top {
             display: flex;
             width: 100%;
             justify-content: space-between;
             align-items: center;
-            max-width: 840px;
+            max-width: 940px;
             margin-bottom: 20px;
+            gap: 10px;
         }
 
         .btn {
@@ -151,46 +156,47 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+            white-space: nowrap;
         }
         .btn:hover { background-color: #b5a495; }
 
-        /* 🎵 音樂按鈕樣式 */
         #btn-audio {
             background-color: #7d93a4;
             color: white;
         }
         #btn-audio:hover { background-color: #5d7284; }
 
-        /* 拼圖遊玩板塊 */
+        /* 拼圖大區塊：大螢幕橫排，小螢幕直排 */
         #puzzle-container {
             display: flex;
             gap: 40px;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
             width: 100%;
+            flex-wrap: wrap;
         }
 
-        /* 右側：收納/散落區 */
+        /* 左側目標底板 */
+        #puzzle-board {
+            background-color: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.2);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        /* 右側散落零件池 */
         #pieces-pool {
-            width: 400px;
-            height: 500px;
+            width: 450px;
+            height: 450px;
             background-color: #2c3238;
             border-radius: 4px;
             position: relative;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
             overflow: hidden;
+            max-width: 100%;
         }
 
-        /* 左側：目標底板 */
-        #puzzle-board {
-            width: 400px;
-            height: 400px;
-            background-color: rgba(255,255,255,0.05);
-            border: 2px dashed rgba(255,255,255,0.2);
-            position: relative;
-        }
-
-        /* 真正的互鎖拼圖塊 */
+        /* 互鎖拼圖塊 */
         .puzzle-piece {
             position: absolute;
             cursor: move;
@@ -207,32 +213,28 @@
 </head>
 <body>
 
-    <!-- 🔊 隱藏的音訊標籤 -->
-    <audio id="bg-music" loop></audio>
+    <audio id="bg-music"></audio>
 
-    <!-- 關卡選擇畫面 -->
+    <!-- 大廳畫面 -->
     <div id="selection-screen"></div>
 
-    <!-- 遊戲主畫面 -->
+    <!-- 遊戲畫面 -->
     <div id="game-screen">
         <div class="controls-top">
             <button class="btn" onclick="backToMenu()">← 返回關卡選擇</button>
             <button class="btn" id="btn-audio" onclick="toggleAudio()">🎵 播放隨機 BGM</button>
         </div>
         
-        <h2 id="current-title" style="margin-bottom: 20px; font-family: monospace;"></h2>
+        <h2 id="current-title" style="margin-bottom: 20px; font-family: monospace; text-align: center;"></h2>
         
         <div id="puzzle-container">
-            <!-- 左側置放區 -->
             <div id="puzzle-board"></div>
-            <!-- 右側零件池 -->
             <div id="pieces-pool"></div>
         </div>
     </div>
 
     <script>
-        // 🖼️ 【新增照片拼圖關卡請改這裡！】
-        // 以後要加新照片，直接按照格式在括號內加上：title 和 imgUrl 即可
+        // 🖼️ 照片清單（完整保存）
         const levelList = [
             { title: 'NST_1', imgUrl: 'nst_1.jpg' },
             { title: 'NST_2', imgUrl: 'nst_2.jpg' },
@@ -241,10 +243,10 @@
             { title: 'NST_5', imgUrl: 'nst_5.jpg' },
             { title: 'NST_6', imgUrl: 'nst_6.jpg' },
             { title: 'NST_7', imgUrl: 'nst_7.jpg' },
-            { title: 'NST_8', imgUrl: 'nst_8.jpg' },
+            { title: 'NST_8', imgUrl: 'nst_8.jpg' }
         ];
 
-        // 🎼 音樂對照表（維持小寫設定）
+        // 🎼 音樂對照表（完整保存）
         const playlist = [
             { file: 'formula.mp3', name: 'FORMULA' },
             { file: 'freak_alarm.mp3', name: 'Freak Alarm' },
@@ -254,14 +256,13 @@
             { file: 'cinnamom_shake.mp3', name: 'Cinnamon Shake' },
             { file: 'omg.mp3', name: 'OMG!' },
             { file: 'good_life.mp3', name: 'Good Life' },
-            { file: 'go_go.mp3', name: 'GO!GO!' },
+            { file: 'go_go.mp3', name: 'GO!GO!' }
         ];
 
-        // 拼圖參數設定 (3x3 網格)
+        // 拼圖網格
         const ROWS = 3;
         const COLS = 3;
-        const BOARD_SIZE = 400; 
-        const PIECE_SIZE = BOARD_SIZE / ROWS; 
+        const BASE_WIDTH = 450; 
 
         let currentImgUrl = '';
         let edgesData = []; 
@@ -269,7 +270,13 @@
         let isAudioPlaying = false;
         let currentPlayingTrack = null;
 
-        // 初始化關卡大廳
+        // 當目前歌曲播完，自動隨機切換下一首
+        audio.addEventListener('ended', () => {
+            currentPlayingTrack = null;
+            playRandomMusic();
+        });
+
+        // 初始化大廳
         function initMenu() {
             const screen = document.getElementById('selection-screen');
             screen.innerHTML = ''; 
@@ -291,34 +298,38 @@
             });
         }
 
-        // 🔀 隨機挑選音樂播放的函式
         function playRandomMusic() {
             if (playlist.length === 0) return;
-            const randomIndex = Math.floor(Math.random() * playlist.length);
-            currentPlayingTrack = playlist[randomIndex];
             
-            audio.src = currentPlayingTrack.file;
-            audio.load();
+            if (!currentPlayingTrack) {
+                const randomIndex = Math.floor(Math.random() * playlist.length);
+                currentPlayingTrack = playlist[randomIndex];
+                audio.src = currentPlayingTrack.file;
+                audio.load();
+            }
             
             audio.play().then(() => {
                 isAudioPlaying = true;
                 document.getElementById('btn-audio').innerText = `⏸️ 暫停: ${currentPlayingTrack.name}`;
             }).catch(e => {
+                console.log("自動播放被阻擋，等待點擊：", e);
                 isAudioPlaying = false;
                 document.getElementById('btn-audio').innerText = `🎵 播放隨機 BGM`;
             });
         }
 
-        // ⏸️ 手動切換暫停/播放
         function toggleAudio() {
             if (!audio.src || !currentPlayingTrack) {
-                playRandomMusic();
-                return;
+                const randomIndex = Math.floor(Math.random() * playlist.length);
+                currentPlayingTrack = playlist[randomIndex];
+                audio.src = currentPlayingTrack.file;
+                audio.load();
             }
             if (!isAudioPlaying) {
-                audio.play();
-                isAudioPlaying = true;
-                document.getElementById('btn-audio').innerText = `⏸️ 暫停: ${currentPlayingTrack.name}`;
+                audio.play().then(() => {
+                    isAudioPlaying = true;
+                    document.getElementById('btn-audio').innerText = `⏸️ 暫停: ${currentPlayingTrack.name}`;
+                });
             } else {
                 audio.pause();
                 isAudioPlaying = false;
@@ -338,6 +349,7 @@
             document.getElementById('btn-audio').innerText = `🎵 播放隨機 BGM`;
         }
 
+        // 載入照片並獲取其實際尺寸比例
         function startGame(title, imgUrl) {
             document.getElementById('selection-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'flex';
@@ -345,11 +357,29 @@
             currentImgUrl = imgUrl;
 
             playRandomMusic();
-            generateEdgeRelations();
-            createPuzzlePieces();
+
+            const tempImg = new Image();
+            tempImg.src = imgUrl;
+            tempImg.onload = function() {
+                const imgWidth = tempImg.width;
+                const imgHeight = tempImg.height;
+                const ratio = imgHeight / imgWidth;
+
+                const boardWidth = BASE_WIDTH;
+                const boardHeight = BASE_WIDTH * ratio;
+
+                const board = document.getElementById('puzzle-board');
+                board.style.width = `${boardWidth}px`;
+                board.style.height = `${boardHeight}px`;
+
+                const pieceWidth = boardWidth / COLS;
+                const pieceHeight = boardHeight / ROWS;
+
+                generateEdgeRelations();
+                createPuzzlePieces(boardWidth, boardHeight, pieceWidth, pieceHeight);
+            };
         }
 
-        // 隨機生成網格每條邊的凹凸關係 (1=凸, -1=凹, 0=平)
         function generateEdgeRelations() {
             edgesData = [];
             for (let r = 0; r < ROWS; r++) {
@@ -370,28 +400,27 @@
             }
         }
 
-        // 利用 SVG Path 動態繪製不規則凹凸形狀
-        function createPuzzlePiecePath(top, right, bottom, left) {
-            let s = PIECE_SIZE; let p = s * 0.2; let path = `M 0 0`;
-            if (top === 1) { path += ` H ${s*0.35} C ${s*0.35} ${-p}, ${s*0.4} ${-p}, ${s*0.4} ${-p} C ${s*0.35} ${-p*1.6}, ${s*0.65} ${-p*1.6}, ${s*0.6} ${-p} C ${s*0.6} ${-p}, ${s*0.65} ${-p}, ${s*0.65} 0 H ${s}`; } 
-            else if (top === -1) { path += ` H ${s*0.35} C ${s*0.35} ${p}, ${s*0.4} ${p}, ${s*0.4} ${p} C ${s*0.35} ${p*1.6}, ${s*0.65} ${p*1.6}, ${s*0.6} ${p} C ${s*0.6} ${p}, ${s*0.65} ${p}, ${s*0.65} 0 H ${s}`; } 
-            else { path += ` H ${s}`; }
-            if (right === 1) { path += ` V ${s*0.35} C ${s+p} ${s*0.35}, ${s+p} ${s*0.4}, ${s+p} ${s*0.4} C ${s+p*1.6} ${s*0.35}, ${s+p*1.6} ${s*0.65}, ${s+p} ${s*0.6} C ${s+p} ${s*0.6}, ${s+p} ${s*0.65}, ${s} ${s*0.65} V ${s}`; } 
-            else if (right === -1) { path += ` V ${s*0.35} C ${s-p} ${s*0.35}, ${s-p} ${s*0.4}, ${s-p} ${s*0.4} C ${s-p*1.6} ${s*0.35}, ${s-p*1.6} ${s*0.65}, ${s-p} ${s*0.6} C ${s-p} ${s*0.6}, ${s-p} ${s*0.65}, ${s} ${s*0.65} V ${s}`; } 
-            else { path += ` V ${s}`; }
-            if (bottom === 1) { path += ` H ${s*0.65} C ${s*0.65} ${s+p}, ${s*0.6} ${s+p}, ${s*0.6} ${s+p} C ${s*0.65} ${s+p*1.6}, ${s*0.35} ${s+p*1.6}, ${s*0.4} ${s+p} C ${s*0.4} ${s+p}, ${s*0.35} ${s+p}, ${s*0.35} ${s} H 0`; } 
-            else if (bottom === -1) { path += ` H ${s*0.65} C ${s*0.65} ${s-p}, ${s*0.6} ${s-p}, ${s*0.6} ${s-p} C ${s*0.65} ${s-p*1.6}, ${s*0.35} ${s-p*1.6}, ${s*0.4} ${s-p} C ${s*0.4} ${s-p}, ${s*0.35} ${s-p}, ${s*0.35} ${s} H 0`; } 
+        function createPuzzlePiecePath(w, h, top, right, bottom, left) {
+            let p = Math.min(w, h) * 0.2; 
+            let path = `M 0 0`;
+            if (top === 1) { path += ` H ${w*0.35} C ${w*0.35} ${-p}, ${w*0.4} ${-p}, ${w*0.4} ${-p} C ${w*0.35} ${-p*1.6}, ${w*0.65} ${-p*1.6}, ${w*0.6} ${-p} C ${w*0.6} ${-p}, ${w*0.65} ${-p}, ${w*0.65} 0 H ${w}`; } 
+            else if (top === -1) { path += ` H ${w*0.35} C ${w*0.35} ${p}, ${w*0.4} ${p}, ${w*0.4} ${p} C ${w*0.35} ${p*1.6}, ${w*0.65} ${p*1.6}, ${w*0.6} ${p} C ${w*0.6} ${p}, ${w*0.65} ${p}, ${w*0.65} 0 H ${w}`; } 
+            else { path += ` H ${w}`; }
+            if (right === 1) { path += ` V ${h*0.35} C ${w+p} ${h*0.35}, ${w+p} ${h*0.4}, ${w+p} ${h*0.4} C ${w+p*1.6} ${h*0.35}, ${w+p*1.6} ${h*0.65}, ${w+p} ${h*0.6} C ${w+p} ${h*0.6}, ${w+p} ${h*0.65}, ${w} ${h*0.65} V ${h}`; } 
+            else if (right === -1) { path += ` V ${h*0.35} C ${w-p} ${h*0.35}, ${w-p} ${h*0.4}, ${w-p} ${h*0.4} C ${w-p*1.6} ${h*0.35}, ${w-p*1.6} ${h*0.65}, ${w-p} ${h*0.6} C ${w-p} ${h*0.6}, ${w-p} ${h*0.65}, ${w} ${h*0.65} V ${h}`; } 
+            else { path += ` V ${h}`; }
+            if (bottom === 1) { path += ` H ${w*0.65} C ${w*0.65} ${h+p}, ${w*0.6} ${h+p}, ${w*0.6} ${h+p} C ${w*0.65} ${h+p*1.6}, ${w*0.35} ${h+p*1.6}, ${w*0.4} ${h+p} C ${w*0.4} ${h+p}, ${w*0.35} ${h+p}, ${w*0.35} ${h} H 0`; } 
+            else if (bottom === -1) { path += ` H ${w*0.65} C ${w*0.65} ${h-p}, ${w*0.6} ${h-p}, ${w*0.6} ${h-p} C ${w*0.65} ${h-p*1.6}, ${w*0.35} ${h-p*1.6}, ${w*0.4} ${h-p} C ${w*0.4} ${h-p}, ${w*0.35} ${h-p}, ${w*0.35} ${h} H 0`; } 
             else { path += ` H 0`; }
-            if (left === 1) { path += ` V ${s*0.65} C ${-p} ${s*0.65}, ${-p} ${s*0.6}, ${-p} ${s*0.6} C ${-p*1.6} ${s*0.65}, ${-p*1.6} ${s*0.35}, ${-p} ${s*0.4} C ${-p} ${s*0.4}, ${-p} ${s*0.35}, 0 ${s*0.35} V 0`; } 
-            else if (left === -1) { path += ` V ${s*0.65} C ${p} ${s*0.65}, ${p} ${s*0.6}, ${p} ${s*0.6} C ${p*1.6} ${s*0.65}, ${p*1.6} ${s*0.35}, ${p} ${s*0.4} C ${p} ${s*0.4}, ${p} ${s*0.35}, 0 ${s*0.35} V 0`; } 
+            if (left === 1) { path += ` V ${h*0.65} C ${-p} ${h*0.65}, ${-p} ${h*0.6}, ${-p} ${h*0.6} C ${-p*1.6} ${h*0.65}, ${-p*1.6} ${h*0.35}, ${-p} ${h*0.4} C ${-p} ${h*0.4}, ${-p} ${h*0.35}, 0 ${h*0.35} V 0`; } 
+            else if (left === -1) { path += ` V ${h*0.65} C ${p} ${h*0.65}, ${p} ${h*0.6}, ${p} ${h*0.6} C ${p*1.6} ${h*0.65}, ${p*1.6} ${h*0.35}, ${p} ${h*0.4} C ${p} ${h*0.4}, ${p} ${h*0.35}, 0 ${h*0.35} V 0`; } 
             else { path += ` V 0`; }
             path += ` Z`; return path;
         }
 
-        // 生成實體拼圖塊
-        function createPuzzlePieces() {
+        function createPuzzlePieces(bWidth, bHeight, pWidth, pHeight) {
             const pool = document.getElementById('pieces-pool');
-            const pmax = PIECE_SIZE * 0.3; 
+            const pmax = Math.min(pWidth, pHeight) * 0.3; 
 
             let oldSvg = document.getElementById('puzzle-defs');
             if(oldSvg) oldSvg.remove();
@@ -404,7 +433,7 @@
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
                     let edges = edgesData[r][c];
-                    let pathD = createPuzzlePiecePath(edges[0], edges[1], edges[2], edges[3]);
+                    let pathD = createPuzzlePiecePath(pWidth, pHeight, edges[0], edges[1], edges[2], edges[3]);
                     let clipPath = document.createElementNS("http://www.w3.org/2000/svg", "clipPath");
                     clipPath.setAttribute("id", `clip-${r}-${c}`);
                     let pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -418,25 +447,26 @@
                 for (let c = 0; c < COLS; c++) {
                     const piece = document.createElement('div');
                     piece.classList.add('puzzle-piece');
-                    piece.style.width = `${PIECE_SIZE + pmax * 2}px`;
-                    piece.style.height = `${PIECE_SIZE + pmax * 2}px`;
+                    piece.style.width = `${pWidth + pmax * 2}px`;
+                    piece.style.height = `${pHeight + pmax * 2}px`;
 
-                    const targetX = c * PIECE_SIZE - pmax;
-                    const targetY = r * PIECE_SIZE - pmax;
+                    const targetX = c * pWidth - pmax;
+                    const targetY = r * pHeight - pmax;
                     piece.dataset.correctX = targetX; piece.dataset.correctY = targetY;
 
                     const innerImg = document.createElement('div');
                     innerImg.style.width = '100%'; innerImg.style.height = '100%';
                     innerImg.style.backgroundImage = `url(${currentImgUrl})`;
-                    innerImg.style.backgroundSize = `${BOARD_SIZE}px ${BOARD_SIZE}px`;
-                    innerImg.style.backgroundPosition = `-${c * PIECE_SIZE - pmax}px -${r * PIECE_SIZE - pmax}px`;
+                    innerImg.style.backgroundSize = `${bWidth}px ${bHeight}px`;
+                    innerImg.style.backgroundPosition = `-${c * pWidth - pmax}px -${r * pHeight - pmax}px`;
                     innerImg.style.clipPath = `url(#clip-${r}-${c})`;
                     innerImg.style.transform = `translate(${pmax}px, ${pmax}px)`;
                     piece.appendChild(innerImg);
 
-                    const randomX = Math.random() * (pool.clientWidth - PIECE_SIZE - pmax * 2);
-                    const randomY = Math.random() * (pool.clientHeight - PIECE_SIZE - pmax * 2);
-                    piece.style.left = `${randomX}px`; piece.style.top = `${randomY}px`;
+                    const randomX = Math.random() * (pool.clientWidth - (pWidth + pmax * 2));
+                    const randomY = Math.random() * (pool.clientHeight - (pHeight + pmax * 2));
+                    piece.style.left = `${Math.max(0, randomX)}px`; 
+                    piece.style.top = `${Math.max(0, randomY)}px`;
                     
                     pool.appendChild(piece);
                     enableDrag(piece);
@@ -445,23 +475,33 @@
         }
 
         function enableDrag(el) {
-            let offsetX = 0, offsetY = 0; let isDragging = false;
+            let offsetX = 0, offsetY = 0; 
+            let isDragging = false;
+            let startPoolX = 0, startPoolY = 0; // 紀錄一開始在零件池的位置，失敗時可以回彈
+
             el.addEventListener('mousedown', dragStart);
             el.addEventListener('touchstart', dragStart, { passive: false });
 
             function dragStart(e) {
-                e.preventDefault(); isDragging = true;
+                e.preventDefault(); 
+                isDragging = true;
                 const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
                 const rect = el.getBoundingClientRect();
-                offsetX = clientX - rect.left; offsetY = clientY - rect.top;
+                offsetX = clientX - rect.left; 
+                offsetY = clientY - rect.top;
 
+                // 如果拼圖還在池子裡，紀錄相對池子的座標
                 if(el.parentElement.id === 'pieces-pool') {
+                    startPoolX = parseFloat(el.style.left);
+                    startPoolY = parseFloat(el.style.top);
+                    
                     const currentBodyRect = document.body.getBoundingClientRect();
                     el.style.left = `${rect.left - currentBodyRect.left}px`;
                     el.style.top = `${rect.top - currentBodyRect.top}px`;
                     document.body.appendChild(el);
                 }
+
                 document.addEventListener('mousemove', dragMove);
                 document.addEventListener('touchmove', dragMove, { passive: false });
                 document.addEventListener('mouseup', dragEnd);
@@ -478,26 +518,40 @@
             }
 
             function dragEnd() {
-                if (!isDragging) return; isDragging = false;
+                if (!isDragging) return; 
+                isDragging = false;
+                
                 document.removeEventListener('mousemove', dragMove);
                 document.removeEventListener('touchmove', dragMove);
                 document.removeEventListener('mouseup', dragEnd);
                 document.removeEventListener('touchend', dragEnd);
 
                 const board = document.getElementById('puzzle-board');
+                const pool = document.getElementById('pieces-pool');
                 const boardRect = board.getBoundingClientRect();
                 const pieceRect = el.getBoundingClientRect();
+                
                 const relativeX = pieceRect.left - boardRect.left;
                 const relativeY = pieceRect.top - boardRect.top;
                 const targetX = parseFloat(el.dataset.correctX);
                 const targetY = parseFloat(el.dataset.correctY);
 
+                // 判定成功：吸附到正確網格上
                 if (Math.abs(relativeX - targetX) < 30 && Math.abs(relativeY - targetY) < 30) {
-                    el.style.left = `${targetX}px`; el.style.top = `${targetY}px`;
-                    board.appendChild(el); el.style.cursor = 'default';
+                    el.style.left = `${targetX}px`; 
+                    el.style.top = `${targetY}px`;
+                    board.appendChild(el); 
+                    el.style.cursor = 'default';
                     el.removeEventListener('mousedown', dragStart);
                     el.removeEventListener('touchstart', dragStart);
                     checkWinCondition();
+                } else {
+                    // 判定失敗防呆：如果原本是從池子抓出來的，送回池子原本的位置；如果本來就在外面則留在原地
+                    if (el.parentElement === document.body) {
+                        el.style.left = `${startPoolX}px`;
+                        el.style.top = `${startPoolY}px`;
+                        pool.appendChild(el);
+                    }
                 }
             }
         }
@@ -509,7 +563,6 @@
             }
         }
 
-        // 啟動網頁選單初始化
         initMenu();
     </script>
 </body>
