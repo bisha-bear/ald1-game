@@ -335,7 +335,7 @@
     </div>
 
     <!-- 隱藏的背景音樂播放器 -->
-    <audio id="bgm-player" 
+<audio id="bgm-player" src="FORMULA.mp3"></audio>
     loop src="FORMULA.mp3"></audio>
     loop src="FREAK ALARM.mp3"></audio>
     loop src="Raw Flame.mp3"></audio>
@@ -510,10 +510,37 @@
             }
         }
 
+// ALD1 歌曲播放清單 (按順序自動播放)
+        const playlist = [
+            "FORMULA.mp3",
+            "FREAK ALARM.mp3",
+            "Raw Flame.mp3",
+            "Chains.mp3",
+            "Never Been 2 Heaven.mp3",
+            "Cinnamon Shake.mp3",
+            "OMG!.mp3",
+            "Good Life.mp3",
+            "GO! GO!.mp3",
+            "BORN DIRE.mp3",
+            "BORN DIRE Sped Up Ver.mp3",
+            "BORN DIRE Slowed Down Ver.mp3",
+            "Diamond Hour.mp3",
+            "One More Time.mp3",
+            "Talk to me.mp3",
+            "WELCOME home.mp3"
+        ];
+
+        let currentTrackIndex = 0; // 當前播放歌曲的索引
+
+        // 音樂切換 (開/關)
         function toggleBGM() {
             isBGMOn = !isBGMOn;
             const btn = document.getElementById('bgm-btn');
             if (isBGMOn) {
+                // 如果是第一次播放，載入當前歌曲
+                if (!bgmPlayer.src || bgmPlayer.src === "") {
+                    bgmPlayer.src = playlist[currentTrackIndex];
+                }
                 bgmPlayer.play().catch(() => {});
                 btn.textContent = '🎵 BGM: 開';
                 btn.classList.add('active');
@@ -523,6 +550,17 @@
                 btn.classList.remove('active');
             }
         }
+
+        // 監聽歌曲播放結束事件：自動播放下一首，放完最後一首自動重頭開始
+        bgmPlayer.addEventListener('ended', function() {
+            currentTrackIndex++;
+            // 如果超過歌單總數，歸零回到第一首
+            if (currentTrackIndex >= playlist.length) {
+                currentTrackIndex = 0;
+            }
+            bgmPlayer.src = playlist[currentTrackIndex];
+            bgmPlayer.play().catch(() => {});
+        });
 
         function startTimer() {
             timerInterval = setInterval(() => {
