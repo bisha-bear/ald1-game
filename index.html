@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALPHA DRIVE ONE (ALD1) Official Fan Puzzle</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0b0c10 0%, #1a1528 50%, #2a1b40 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #c084fc, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(192, 132, 252, 0.3);
+        }
+
+        /* 縮圖圖庫區塊 */
+        .gallery-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(192, 132, 252, 0.15);
+        }
+
+        .gallery-grid {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .gallery-thumb {
+            width: 65px;
+            height: 65px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.2s ease;
+        }
+
+        .gallery-thumb:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        .gallery-thumb.active {
+            opacity: 1;
+            border-color: #c084fc;
+            box-shadow: 0 0 12px rgba(192, 132, 252, 0.8);
+            transform: scale(1.08);
+        }
+
+        /* 功能控制列 */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(192, 132, 252, 0.2);
+            margin-bottom: 20px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        select, button {
+            background: #2a1b40;
+            color: #fff;
+            border: 1px solid #a855f7;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        select:hover, button:hover {
+            background: #3b235d;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+        }
+
+        .btn-toggle {
+            background: rgba(168, 85, 247, 0.2);
+        }
+
+        .btn-toggle.active {
+            background: #a855f7;
+            font-weight: bold;
+        }
+
+        .timer-display {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #38bdf8;
+            margin-left: 10px;
+        }
+
+        /* 主遊戲區佈局 */
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        /* 拼圖目標板 */
+        #puzzle-board {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #a855f7;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.3);
+            display: grid;
+            overflow: hidden;
+        }
+
+        /* 半透明原圖預覽底圖 */
+        #preview-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.25;
+            display: none;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .cell {
+            width: 100%;
+            height: 100%;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 托盤區 */
+        #pieces-pool {
+            width: 450px;
+            min-height: 200px;
+            max-height: 450px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-content: flex-start;
+            justify-content: center;
+        }
+
+        /* 拼圖塊 */
+        .piece {
+            background-repeat: no-repeat;
+            cursor: grab;
+            user-select: none;
+            border-radius: 3px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            transition: transform 0.1s ease;
+        }
+
+        .piece:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        /* 通關彈窗 */
+        #win-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #win-modal.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: #181124;
+            border: 2px solid #c084fc;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 90%;
+            width: 360px;
+            box-shadow: 0 0 30px rgba(192, 132, 252, 0.5);
+        }
+
+        .modal-card h2 {
+            color: #f43f5e;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-card p {
+            margin: 10px 0;
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+
+        .share-btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .share-btn {
+            background: linear-gradient(135deg, #a855f7 0%, #38bdf8 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 960px) {
+            #puzzle-board, #pieces-pool {
+                width: 340px;
+            }
+            #puzzle-board {
+                height: 340px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ALPHA DRIVE ONE</h1>
+    </header>
+
+    <!-- 縮圖選擇區 -->
+    <div class="gallery-container">
+        <div class="gallery-grid" id="gallery-grid">
+            <!-- 💡 替換 src 網址為你自己想要的照片連結 -->
+            <img src="海報_1.jpg" class="gallery-thumb active" onclick="selectImage(this, '海報_1.jpg')" alt="Photo 1">
+
+            <img src="海報_2.jpg" class="gallery-thumb active" onclick="selectImage(this, '海報_2.jpg')" alt="Photo 2">
+
+            <img src="海報_3.jpg" class="gallery-thumb active" onclick="selectImage(this, '海報_3.jpg')" alt="Photo 3">
+
+            <img src="海報_4.jpg" class="gallery-thumb active" onclick="selectImage(this, '海報_4.jpg')" alt="Photo 4">
+
+            <img src="海報_5.jpg" class="gallery-thumb active" onclick="selectImage(this, '海報_5.jpg')" alt="Photo 5">
+
+            <img src="海報_6.jpg" class="gallery-thumb active" onclick="selectImage(this, '海報_6.jpg')" alt="Photo 6">
+
+            <img src="海報_7.jpg" class="gallery-thumb active" onclick="selectImage(this, '海報_7.jpg')" alt="Photo 7">
+
+        </div>
+    </div>
+
+    <!-- 控制功能列 -->
+    <div class="controls">
+        <div class="control-group">
+            <label for="piece-select">🧩 難度：</label>
+            <select id="piece-select" onchange="initGame()">
+                <option value="24">24 片 (入門)</option>
+                <option value="100">100 片 (進階)</option>
+                <option value="500">500 片 (大師)</option>
+                <option value="1000">1000 片 (神級)</option>
+                <option value="2000">2000 片 (極限)</option>
+            </select>
+        </div>
+
+        <button id="preview-btn" class="btn-toggle" onclick="togglePreview()">👁️ 預覽圖: 關</button>
+        <button id="bgm-btn" class="btn-toggle" onclick="toggleBGM()">🎵 BGM: 關</button>
+        <div class="timer-display">⏱️ <span id="timer">0</span>s</div>
+    </div>
+
+    <div class="game-container">
+        <!-- 拼圖目標區域 -->
+        <div id="puzzle-board">
+            <div id="preview-overlay"></div>
+        </div>
+
+        <!-- 托盤放置區 -->
+        <div id="pieces-pool"></div>
+    </div>
+
+    <!-- 隱藏的背景音樂播放器 -->
+    <audio id="bgm-player" 
+    loop src="FORMULA.mp3"></audio>
+    loop src="FREAK ALARM.mp3"></audio>
+    loop src="Raw Flame.mp3"></audio>
+    loop src="Chains.mp3"></audio>
+    loop src="Never Been 2 Heaven.mp3"></audio>
+    loop src="Cinnamon Shake.mp3"></audio>
+    loop src="OMG!.mp3"></audio>
+    loop src="Good Life.mp3"></audio>
+    loop src="GO! GO!.mp3"></audio>
+    loop src="BORN DIRE.mp3"></audio>
+    loop src="BORN DIRE Sped Up Ver.mp3"></audio>
+    loop src="BORN DIRE Slowed Down Ver.mp3"></audio>
+    loop src="Diamond Hour.mp3"></audio>
+    loop src="One More Time.mp3"></audio>
+    loop src="Talk to me.mp3"></audio>
+    loop src="WELCOME home.mp3"></audio>
+
+    <!-- 通關結算視窗 -->
+    <div id="win-modal">
+        <div class="modal-card">
+            <h2>✨ 拼圖完成！</h2>
+            <p>完成時間：<strong id="final-time">0</strong> 秒</p>
+            <div class="share-btn-group">
+                <button class="share-btn" onclick="shareResult()">📤 一鍵複製成績分享</button>
+                <button onclick="closeModal()">再玩一次</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gridSizeCols = 6;
+        let gridSizeRows = 4;
+        let totalPieces = 24;
+        let timer = 0;
+        let timerInterval = null;
+        let isStarted = false;
+        let currentImgUrl = 'https://picsum.photos/id/1015/800/800';
+        let isPreviewOn = false;
+        let isBGMOn = false;
+
+        const board = document.getElementById('puzzle-board');
+        const pool = document.getElementById('pieces-pool');
+        const overlay = document.getElementById('preview-overlay');
+        const bgmPlayer = document.getElementById('bgm-player');
+
+        function selectImage(element, url) {
+            document.querySelectorAll('.gallery-thumb').forEach(thumb => {
+                thumb.classList.remove('active');
+            });
+            element.classList.add('active');
+            currentImgUrl = url;
+            initGame();
+        }
+
+        function calculateGrid(count) {
+            totalPieces = parseInt(count);
+            switch(totalPieces) {
+                case 24: gridSizeCols = 6; gridSizeRows = 4; break;
+                case 100: gridSizeCols = 10; gridSizeRows = 10; break;
+                case 500: gridSizeCols = 25; gridSizeRows = 20; break;
+                case 1000: gridSizeCols = 40; gridSizeRows = 25; break;
+                case 2000: gridSizeCols = 50; gridSizeRows = 40; break;
+            }
+        }
+
+        function initGame() {
+            clearInterval(timerInterval);
+            timer = 0;
+            isStarted = false;
+            document.getElementById('timer').textContent = '0';
+
+            overlay.style.backgroundImage = `url('${currentImgUrl}')`;
+
+            const pieceSelect = document.getElementById('piece-select');
+            calculateGrid(pieceSelect.value);
+
+            board.style.gridTemplateColumns = `repeat(${gridSizeCols}, 1fr)`;
+            board.style.gridTemplateRows = `repeat(${gridSizeRows}, 1fr)`;
+
+            const oldCells = board.querySelectorAll('.cell');
+            oldCells.forEach(cell => cell.remove());
+            pool.innerHTML = '';
+
+            const boardWidth = board.clientWidth;
+            const boardHeight = board.clientHeight;
+            const pieceWidth = boardWidth / gridSizeCols;
+            const pieceHeight = boardHeight / gridSizeRows;
+
+            for (let i = 0; i < totalPieces; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.addEventListener('dragover', e => e.preventDefault());
+                cell.addEventListener('drop', handleDrop);
+                board.appendChild(cell);
+            }
+
+            let pieceIndices = Array.from({length: totalPieces}, (_, i) => i);
+            pieceIndices.sort(() => Math.random() - 0.5);
+
+            pieceIndices.forEach(idx => {
+                const piece = document.createElement('div');
+                piece.className = 'piece';
+                piece.draggable = true;
+                piece.id = `piece-${idx}`;
+                piece.dataset.correctIndex = idx;
+
+                piece.style.width = `${pieceWidth}px`;
+                piece.style.height = `${pieceHeight}px`;
+
+                const row = Math.floor(idx / gridSizeCols);
+                const col = idx % gridSizeCols;
+                piece.style.backgroundImage = `url('${currentImgUrl}')`;
+                piece.style.backgroundSize = `${boardWidth}px ${boardHeight}px`;
+                piece.style.backgroundPosition = `-${col * pieceWidth}px -${row * pieceHeight}px`;
+
+                piece.addEventListener('dragstart', handleDragStart);
+                pool.appendChild(piece);
+            });
+
+            pool.addEventListener('dragover', e => e.preventDefault());
+            pool.addEventListener('drop', handleDropToPool);
+        }
+
+        let draggedPieceId = null;
+
+        function handleDragStart(e) {
+            if (!isStarted) {
+                startTimer();
+                isStarted = true;
+            }
+            draggedPieceId = e.target.id;
+            e.dataTransfer.setData('text/plain', e.target.id);
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetCell = e.target.closest('.cell');
+            if (!targetCell) return;
+
+            const piece = document.getElementById(draggedPieceId);
+            if (!piece) return;
+
+            if (targetCell.children.length > 0) {
+                const existingPiece = targetCell.children[0];
+                piece.parentElement.appendChild(existingPiece);
+            }
+
+            targetCell.appendChild(piece);
+            checkWin();
+        }
+
+        function handleDropToPool(e) {
+            e.preventDefault();
+            const piece = document.getElementById(draggedPieceId);
+            if (piece && (e.target.id === 'pieces-pool' || e.target.closest('#pieces-pool'))) {
+                pool.appendChild(piece);
+            }
+        }
+
+        function togglePreview() {
+            isPreviewOn = !isPreviewOn;
+            const btn = document.getElementById('preview-btn');
+            if (isPreviewOn) {
+                overlay.style.display = 'block';
+                btn.textContent = '👁️ 預覽圖: 開';
+                btn.classList.add('active');
+            } else {
+                overlay.style.display = 'none';
+                btn.textContent = '👁️ 預覽圖: 關';
+                btn.classList.remove('active');
+            }
+        }
+
+        function toggleBGM() {
+            isBGMOn = !isBGMOn;
+            const btn = document.getElementById('bgm-btn');
+            if (isBGMOn) {
+                bgmPlayer.play().catch(() => {});
+                btn.textContent = '🎵 BGM: 開';
+                btn.classList.add('active');
+            } else {
+                bgmPlayer.pause();
+                btn.textContent = '🎵 BGM: 關';
+                btn.classList.remove('active');
+            }
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timer++;
+                document.getElementById('timer').textContent = timer;
+            }, 1000);
+        }
+
+        function checkWin() {
+            const cells = board.querySelectorAll('.cell');
+            let correctCount = 0;
+
+            cells.forEach(cell => {
+                const piece = cell.children[0];
+                if (piece && cell.dataset.index === piece.dataset.correctIndex) {
+                    correctCount++;
+                }
+            });
+
+            if (correctCount === totalPieces) {
+                clearInterval(timerInterval);
+                document.getElementById('final-time').textContent = timer;
+                document.getElementById('win-modal').classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('win-modal').classList.remove('active');
+            initGame();
+        }
+
+        function shareResult() {
+            const text = `🧩 我剛剛完成了 ALPHA DRIVE ONE (${totalPieces}片) 官方拼圖挑戰！\n⏱️ 完成時間：${timer} 秒！\n快來跟我一起挑戰吧！#ALPHA_DRIVE_ONE #ALD1 #ALLYZ`;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('成績已複製到剪貼簿！快去 Threads / X 發文分享吧！');
+            });
+        }
+
+        window.onload = () => {
+            initGame();
+        };
+    </script>
+</body>
+</html>
